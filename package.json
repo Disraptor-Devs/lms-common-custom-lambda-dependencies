@@ -1,0 +1,25 @@
+{
+  "name": "lms-common-custom-lambda-dependencies",
+  "version": "1.0.0",
+  "description": "A repo where common custom dependencies for the LMS backend are kept.",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Disraptor-Devs/lms-common-custom-lambda-dependencies.git"
+  },
+  "author": "Hannes Swanepoel (hannes.swanepoel@disraptor.co.za)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Disraptor-Devs/lms-common-custom-lambda-dependencies/issues"
+  },
+  "homepage": "https://github.com/Disraptor-Devs/lms-common-custom-lambda-dependencies#readme",
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "dependencies": {
+    "dayjs": "^1.11.11"
+  }
+}
