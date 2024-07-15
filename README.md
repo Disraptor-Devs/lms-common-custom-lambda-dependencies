@@ -3,7 +3,7 @@ A repo where common custom dependencies for the LMS backend are kept. The intent
 
 Following is a list and description of available modules.
 
-# Valid leave days (valid-leave-days.js)
+# Calculate leave days (calculate-leave-days.js)
 This module exposes a few functions that assist in determining the number of days, weekend days and public holidays given a date range.
 
 This module uses `dayjs` to make it easier to work with dates and times.
