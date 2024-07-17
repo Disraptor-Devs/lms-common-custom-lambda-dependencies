@@ -157,7 +157,7 @@ const calculateTotalLeaveDaysAsync = async (start, end) => {
 // NOTE!
 // This function indirectly integrates with a 3rd party API: Google Calendar
 // This function uses day.js: https://day.js.org/docs/en/installation/node-js
-const getPublicHolidayDatesAsync = async (start = null, end = null) => {
+const getPublicHolidayDatesAsync = async (start = null, end = null, offset = 0) => {
   let now = dayjs.utc().startOf("day");
 
   // Default values
@@ -179,7 +179,8 @@ const getPublicHolidayDatesAsync = async (start = null, end = null) => {
 
   try {
     const rawPublicHolidayDates = await getPublicHolidayDatesUsingGoogleCalendarAPIAsync(start.toDate(), end.toDate());
-    const utcPublicHolidayDates = rawPublicHolidayDates.map(date => dayjs(date).utc().toDate());
+    const utcPublicHolidayDates = rawPublicHolidayDates.map(date => dayjs(date).utcOffset(offset, true).toDate());
+    // const utcPublicHolidayDates = rawPublicHolidayDates.map(date => dayjs(date).utc().toDate());
 
     return utcPublicHolidayDates;
   }

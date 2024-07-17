@@ -132,23 +132,28 @@ if (INCLUDE_INTEGRATION_TESTS) {
   });
 
   describe("getPublicHolidayDatesAsync(): fetches the public holiday dates - specifying start and end dates are optional", () => {
-    const testCases = [
-      { utcOffset: 120, expected: { dates: [ 
+    const testCases = [{
+      // Default range
+      utcOffset: 120, expected: { dates: [ 
         "2024-08-09", "2024-09-24", "2024-12-25", 
         "2024-05-29", "2024-06-17", "2024-12-16", 
-        "2024-06-16", "2024-05-01", "2024-12-26" ] } },
-      { startDate: "2024-01-01", endDate: "2025-01-01", utcOffset: 120, expected: { dates: [ 
+        "2024-06-16", "2024-05-01", "2024-12-26"
+    ]}}, {
+      startDate: "2024-01-01", endDate: "2025-01-01", utcOffset: 120, expected: { dates: [ 
         "2024-12-26", "2024-05-01", "2024-04-27", "2024-06-16", "2024-04-01", 
         "2024-12-16", "2024-06-17", "2024-05-29", "2024-03-21", "2024-12-25", 
-        "2024-09-24", "2024-08-09", "2024-03-29", "2024-01-01" ] } },
-      { startDate: "2024-05-01", endDate: "2024-06-01", utcOffset: 120, expected: { dates: [ 
-        "2024-05-01", "2024-05-29" ] } },
-        { startDate: "2024-04-01", endDate: "2024-05-01", utcOffset: 120, expected: { dates: [ 
-          "2024-04-01", "2024-04-27" ] } }
-    ];
+        "2024-09-24", "2024-08-09", "2024-03-29", "2024-01-01"
+    ]}}, {
+      startDate: "2024-05-01", endDate: "2024-06-01", utcOffset: 120, expected: { dates: [ 
+        "2024-05-01", "2024-05-29"
+    ]}}, {
+      startDate: "2024-04-01", endDate: "2024-05-01", utcOffset: 120, expected: { dates: [ 
+        "2024-04-01", "2024-04-27"
+    ]}} ];
     let testCase,
         startDate,
         endDate,
+        offset,
         expected,
         expectedDates;
 
@@ -156,10 +161,11 @@ if (INCLUDE_INTEGRATION_TESTS) {
       testCase = testCases[index];
       startDate = testCase.startDate;
       endDate = testCase.endDate;
+      offset = testCase.utcOffset;
       expected = testCase.expected;
       expectedDates = expected.dates.map(date => {
         return dayjs(date)
-              .utcOffset(testCase.utcOffset)
+              .utcOffset(offset)
               .toDate();
       });
       
@@ -167,10 +173,10 @@ if (INCLUDE_INTEGRATION_TESTS) {
         let actual;
 
         if (!startDate || !endDate) {
-          actual = await helpers.getPublicHolidayDatesAsync();
+          actual = await helpers.getPublicHolidayDatesAsync(offset);
         }
         else {
-          actual = await helpers.getPublicHolidayDatesAsync(startDate, endDate);
+          actual = await helpers.getPublicHolidayDatesAsync(startDate, endDate, offset);
         }
 
         expect(actual).toHaveLength(expectedDates.length);
