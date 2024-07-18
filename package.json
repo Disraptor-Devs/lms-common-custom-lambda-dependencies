@@ -4,7 +4,7 @@
   "description": "A repo where common custom dependencies for the LMS backend are kept.",
   "main": "index.js",
   "scripts": {
-    "test": "jest"
+    "test": "cross-env GOOGLE_CALENDAR_API_KEY_SECRET_NAME=calendar_api SECRET_VALUE_KEY=calendarAPI jest --passWithNoTests --detectOpenHandles"
   },
   "repository": {
     "type": "git",
@@ -17,9 +17,12 @@
   },
   "homepage": "https://github.com/Disraptor-Devs/lms-common-custom-lambda-dependencies#readme",
   "devDependencies": {
-    "jest": "^29.7.0"
+    "cross-env": "^7.0.3",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0"
   },
   "dependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.614.0",
     "dayjs": "^1.11.11"
   }
 }

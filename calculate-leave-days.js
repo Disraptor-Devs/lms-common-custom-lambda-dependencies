@@ -1,8 +1,40 @@
 
-// const moment = require("moment");
+const { SecretsManagerClient, GetSecretValueCommand } = require("@aws-sdk/client-secrets-manager");
 const dayjs = require("dayjs");
 const dayjsutc = require("dayjs/plugin/utc");
 dayjs.extend(dayjsutc);
+
+const GOOGLE_CALENDAR_API_BASE_URL = "https://www.googleapis.com/calendar/v3/calendars";
+const GOOGLE_CALENDAR_API_REGION = "en.sa";
+const GOOGLE_CALENDAR_API_CALENDAR_ID = "holiday@group.v.calendar.google.com";
+const GOOGLE_CALENDAR_API_CALENDAR_FILTER = "public holiday";
+
+// NOTE: This is a private function, not exposed in the exports.
+// NOTE: This function reads AWS secrets.
+const readSecretValueAsync = async (secretName) => {
+  const secretValueKeyName = "SECRET_VALUE_KEY";
+  const secretValueKey = process.env[secretValueKeyName];
+
+  if (!secretValueKey) {
+    return Promise.reject(`Required environment variable [${secretValueKeyName}] is not configured.`);
+  }
+  
+  let response;
+
+  try {
+    const secretsClient = new SecretsManagerClient({});
+    const command = new GetSecretValueCommand({ SecretId: secretName });
+    response = await secretsClient.send(command);
+  } catch (secretError) {
+    console.error(`The secret [${secretName}] could not be read: [${secretError.message}].`, secretError);
+
+    return Promise.resolve(null);
+  }
+
+  const secretValue = JSON.parse(response.SecretString);
+
+  return Promise.resolve(secretValue[secretValueKey]);
+};
 
 const isWeekend = (date) => {
   const dateDate = new Date(date);
@@ -39,23 +71,25 @@ const calculateWeekendDays = (start, end) => {
 // This function integrates with a 3rd party API: Google Calendar
 // It returns the data from the API as-is; no date conversion or formatting
 const getPublicHolidayDatesUsingGoogleCalendarAPIAsync = async (start, end) => {
-  const googleApiKeyVarName = "GOOGLE_CALENDAR_API_KEY";
-  const apiKey = process.env[googleApiKeyVarName];
+  const calendarApiKeyVarName = "GOOGLE_CALENDAR_API_KEY_SECRET_NAME";
+  const googleApiKeySecretName = process.env[calendarApiKeyVarName];
+
+  if (!googleApiKeySecretName) {
+    return Promise.reject(`Required environment variable [${calendarApiKeyVarName}] is not configured.`);
+  }
+
+  const apiKey = await readSecretValueAsync(googleApiKeySecretName);
 
   if (!apiKey) {
-    return Promise.reject(`Required environment variable [${googleApiKeyVarName}] not configured.`);
+    return Promise.reject(`Required secret value [${googleApiKeySecretName}] could not be read.`);
   }
 
   const https = require("https");
   const startDate = new Date(start);
   const endDate = new Date(end);
-  const baseUrl = "https://www.googleapis.com/calendar/v3/calendars";
-  const region = "en.sa";
-  const calendarId = "holiday@group.v.calendar.google.com";
   const startDateString = startDate.toISOString();
   const endDateString = endDate.toISOString();
-  const filter = "public holiday";
-  const url = `${baseUrl}/${region}%23${calendarId}/events?key=${apiKey}&timeMin=${startDateString}&timeMax=${endDateString}&q=${filter}`;
+  const url = `${GOOGLE_CALENDAR_API_BASE_URL}/${GOOGLE_CALENDAR_API_REGION}%23${GOOGLE_CALENDAR_API_CALENDAR_ID}/events?key=${apiKey}&timeMin=${startDateString}&timeMax=${endDateString}&q=${GOOGLE_CALENDAR_API_CALENDAR_FILTER}`;
 
   return new Promise((resolve, reject) => {
     https
@@ -192,9 +226,14 @@ const getPublicHolidayDatesAsync = async (start = null, end = null, offset = 0) 
 };
 
 module.exports = {
-  calculateTotalDays: calculateTotalDays,
-  calculateWeekendDays: calculateWeekendDays,
-  calculatePublicHolidaysAsync: calculatePublicHolidaysUsingGoogleCalendarAPIAsync,
   calculateTotalLeaveDaysAsync: calculateTotalLeaveDaysAsync,
-  getPublicHolidayDatesAsync: getPublicHolidayDatesAsync
+  getPublicHolidayDatesAsync: getPublicHolidayDatesAsync,
+
+  // I don't really want to expose the functions below, as
+  // they are mostly used internally inside this module, but
+  // I do it on an ad-hoc basis during unit & E2E testing.
+  // calculateTotalDays: calculateTotalDays,
+  // calculateWeekendDays: calculateWeekendDays,
+  // calculatePublicHolidaysAsync: calculatePublicHolidaysUsingGoogleCalendarAPIAsync,
+  // readSecretValueAsync: readSecretValueAsync,
 };

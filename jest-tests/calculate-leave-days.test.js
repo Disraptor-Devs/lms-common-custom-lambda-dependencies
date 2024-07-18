@@ -1,6 +1,7 @@
 
 const dayjs = require("dayjs");
 const dayjsutc = require("dayjs/plugin/utc");
+
 dayjs.extend(dayjsutc);
 
 const helpers = require("../calculate-leave-days");
@@ -75,113 +76,135 @@ describe("calculateWeekendDays(): calculate only the weekend days between two da
 if (INCLUDE_INTEGRATION_TESTS) {
   console.warn("PROCEEDING WITH INTEGRATION TESTS!")
 
-  // IMPORTANT:
-  // The following test suites all include integration
-  // We may need to skip these during CI/CD workflows
-  describe("calculatePublicHolidaysAsync(): determine total number of leave-applicable public holidays between two dates", () => {
-    const testCases = [ // Using Google Calendar API
-      { startDate: "2024-05-27", endDate: "2024-05-31", expected: 1 },
-      { startDate: "2024-05-27", endDate: "2024-05-28", expected: 0 },
-      { startDate: "2024-05-30", endDate: "2024-06-02", expected: 1 },
-      { startDate: "2024-05-27", endDate: "2024-06-20", expected: 2 },
-      { startDate: "2024-05-27", endDate: "2024-08-10", expected: 3 }
-    ];
-    let testCase,
-        startDate,
-        endDate;
+  if (TEST_calculatePublicHolidaysAsync) {
+    // IMPORTANT:
+    // The following test suites all include integration
+    // We may need to skip these during CI/CD workflows
+    describe("calculatePublicHolidaysAsync(): determine total number of leave-applicable public holidays between two dates", () => {
+      const testCases = [ // Using Google Calendar API
+        { startDate: "2024-05-27", endDate: "2024-05-31", expected: 1 },
+        { startDate: "2024-05-27", endDate: "2024-05-28", expected: 0 },
+        { startDate: "2024-05-30", endDate: "2024-06-02", expected: 1 },
+        { startDate: "2024-05-27", endDate: "2024-06-20", expected: 2 },
+        { startDate: "2024-05-27", endDate: "2024-08-10", expected: 3 }
+      ];
+      let testCase,
+          startDate,
+          endDate;
 
-    for (let index = 0; index < testCases.length; index++) {
-      testCase = testCases[index];
-      startDate = testCase.startDate;
-      endDate = testCase.endDate;
-      
-      it(`from [${startDate}] to [${endDate}] should equal [${testCase.expected}]`, async () => {
-        let publicHolidays = await helpers.calculatePublicHolidaysAsync(new Date(startDate), new Date(endDate));
+      for (let index = 0; index < testCases.length; index++) {
+        testCase = testCases[index];
+        startDate = testCase.startDate;
+        endDate = testCase.endDate;
+        
+        it(`from [${startDate}] to [${endDate}] should equal [${testCase.expected}]`, async () => {
+          let publicHolidays = await helpers.calculatePublicHolidaysAsync(new Date(startDate), new Date(endDate));
 
-        expect(publicHolidays)
-          .toBe(testCase.expected);
+          expect(publicHolidays)
+            .toBe(testCase.expected);
+        });
+      }
+    });
+  }
+
+  if (TEST_calculateTotalLeaveDaysAsync) {
+    describe("calculateTotalLeaveDaysAsync(): calculate the total number of days of leave that will be deducted between two dates", () => {
+      const testCases = [ // Using Google Calendar API
+        { startDate: "2024-05-27", endDate: "2024-05-31", expected: 4 },
+        { startDate: "2024-05-27", endDate: "2024-05-28", expected: 2 },
+        { startDate: "2024-05-27", endDate: "2024-06-02", expected: 4 },
+        { startDate: "2024-05-27", endDate: "2024-06-03", expected: 5 },
+        { startDate: "2024-05-27", endDate: "2024-06-14", expected: 14 },
+        { startDate: "2024-05-27", endDate: "2024-06-18", expected: 15 }
+      ];
+      let testCase,
+          startDate,
+          endDate;
+
+      for (let index = 0; index < testCases.length; index++) {
+        testCase = testCases[index];
+        startDate = testCase.startDate;
+        endDate = testCase.endDate;
+        
+        it(`from [${startDate}] to [${endDate}] should equal [${testCase.expected}]`, async () => {
+          let totalLeaveDays = await helpers.calculateTotalLeaveDaysAsync(new Date(startDate), new Date(endDate));
+
+          expect(totalLeaveDays)
+            .toBe(testCase.expected);
+        });
+      }
+    });
+  }
+
+  if (TEST_getPublicHolidayDatesAsync) {
+    describe("getPublicHolidayDatesAsync(): fetches the public holiday dates - specifying start and end dates are optional", () => {
+      const testCases = [{
+        // Default range
+        utcOffset: 120, expected: { dates: [ 
+          "2024-08-09", "2024-09-24", "2024-12-25", 
+          "2024-05-29", "2024-06-17", "2024-12-16", 
+          "2024-06-16", "2024-05-01", "2024-12-26"
+      ]}}, {
+        startDate: "2024-01-01", endDate: "2025-01-01", utcOffset: 120, expected: { dates: [ 
+          "2024-12-26", "2024-05-01", "2024-04-27", "2024-06-16", "2024-04-01", 
+          "2024-12-16", "2024-06-17", "2024-05-29", "2024-03-21", "2024-12-25", 
+          "2024-09-24", "2024-08-09", "2024-03-29", "2024-01-01"
+      ]}}, {
+        startDate: "2024-05-01", endDate: "2024-06-01", utcOffset: 120, expected: { dates: [ 
+          "2024-05-01", "2024-05-29"
+      ]}}, {
+        startDate: "2024-04-01", endDate: "2024-05-01", utcOffset: 120, expected: { dates: [ 
+          "2024-04-01", "2024-04-27"
+      ]}} ];
+      let testCase,
+          startDate,
+          endDate,
+          offset,
+          expected,
+          expectedDates;
+
+      for (let index = 0; index < testCases.length; index++) {
+        testCase = testCases[index];
+        startDate = testCase.startDate;
+        endDate = testCase.endDate;
+        offset = testCase.utcOffset;
+        expected = testCase.expected;
+        expectedDates = expected.dates.map(date => {
+          return dayjs(date)
+                .utcOffset(offset)
+                .toDate();
+        });
+        
+        it(`there should be [${expected.dates.length}] public holidays ${ !startDate || !endDate ? "in the default range" : `between [${startDate}] and [${endDate}]` }`, async () => {
+          let actual;
+
+          if (!startDate || !endDate) {
+            actual = await helpers.getPublicHolidayDatesAsync(offset);
+          }
+          else {
+            actual = await helpers.getPublicHolidayDatesAsync(startDate, endDate, offset);
+          }
+
+          expect(actual).toHaveLength(expectedDates.length);
+          expect(actual.map(ad => { return ad.getTime(); })).toEqual(expect.arrayContaining(expectedDates.map(ed => { return ed.getTime(); })));
+        });
+      }
+    });
+  }
+
+  if (TEST_readSecretValue) {
+    // IMPORTANT:
+    // This function relies on an environment variable to identify the JSON key that hold the secret value
+    // E.g.
+    //  SecretValue = "{'secret-key': 'secret-value'}"
+    //  Environment variable SECRET_VALUE_KEY = 'secret-key'
+    describe(`readSecretValue(): reads an AWS secret by its ID`, () => {
+      it(`should return a string value`, async () => {
+        const GOOGLE_CALENDAR_API_KEY_SECRET_NAME = "calendar_api";
+        const result = await helpers.readSecretValueAsync(GOOGLE_CALENDAR_API_KEY_SECRET_NAME);
+
+        expect(result).not.toBeNull();
       });
-    }
-  });
-
-  describe("calculateTotalLeaveDaysAsync(): calculate the total number of days of leave that will be deducted between two dates", () => {
-    const testCases = [ // Using Google Calendar API
-      { startDate: "2024-05-27", endDate: "2024-05-31", expected: 4 },
-      { startDate: "2024-05-27", endDate: "2024-05-28", expected: 2 },
-      { startDate: "2024-05-27", endDate: "2024-06-02", expected: 4 },
-      { startDate: "2024-05-27", endDate: "2024-06-03", expected: 5 },
-      { startDate: "2024-05-27", endDate: "2024-06-14", expected: 14 },
-      { startDate: "2024-05-27", endDate: "2024-06-18", expected: 15 }
-    ];
-    let testCase,
-        startDate,
-        endDate;
-
-    for (let index = 0; index < testCases.length; index++) {
-      testCase = testCases[index];
-      startDate = testCase.startDate;
-      endDate = testCase.endDate;
-      
-      it(`from [${startDate}] to [${endDate}] should equal [${testCase.expected}]`, async () => {
-        let totalLeaveDays = await helpers.calculateTotalLeaveDaysAsync(new Date(startDate), new Date(endDate));
-
-        expect(totalLeaveDays)
-          .toBe(testCase.expected);
-      });
-    }
-  });
-
-  describe("getPublicHolidayDatesAsync(): fetches the public holiday dates - specifying start and end dates are optional", () => {
-    const testCases = [{
-      // Default range
-      utcOffset: 120, expected: { dates: [ 
-        "2024-08-09", "2024-09-24", "2024-12-25", 
-        "2024-05-29", "2024-06-17", "2024-12-16", 
-        "2024-06-16", "2024-05-01", "2024-12-26"
-    ]}}, {
-      startDate: "2024-01-01", endDate: "2025-01-01", utcOffset: 120, expected: { dates: [ 
-        "2024-12-26", "2024-05-01", "2024-04-27", "2024-06-16", "2024-04-01", 
-        "2024-12-16", "2024-06-17", "2024-05-29", "2024-03-21", "2024-12-25", 
-        "2024-09-24", "2024-08-09", "2024-03-29", "2024-01-01"
-    ]}}, {
-      startDate: "2024-05-01", endDate: "2024-06-01", utcOffset: 120, expected: { dates: [ 
-        "2024-05-01", "2024-05-29"
-    ]}}, {
-      startDate: "2024-04-01", endDate: "2024-05-01", utcOffset: 120, expected: { dates: [ 
-        "2024-04-01", "2024-04-27"
-    ]}} ];
-    let testCase,
-        startDate,
-        endDate,
-        offset,
-        expected,
-        expectedDates;
-
-    for (let index = 0; index < testCases.length; index++) {
-      testCase = testCases[index];
-      startDate = testCase.startDate;
-      endDate = testCase.endDate;
-      offset = testCase.utcOffset;
-      expected = testCase.expected;
-      expectedDates = expected.dates.map(date => {
-        return dayjs(date)
-              .utcOffset(offset)
-              .toDate();
-      });
-      
-      it(`there should be [${expected.dates.length}] public holidays ${ !startDate || !endDate ? "in the default range" : `between [${startDate}] and [${endDate}]` }`, async () => {
-        let actual;
-
-        if (!startDate || !endDate) {
-          actual = await helpers.getPublicHolidayDatesAsync(offset);
-        }
-        else {
-          actual = await helpers.getPublicHolidayDatesAsync(startDate, endDate, offset);
-        }
-
-        expect(actual).toHaveLength(expectedDates.length);
-        expect(actual.map(ad => { return ad.getTime(); })).toEqual(expect.arrayContaining(expectedDates.map(ed => { return ed.getTime(); })));
-      });
-    }
-  });
+    });
+  }
 }
