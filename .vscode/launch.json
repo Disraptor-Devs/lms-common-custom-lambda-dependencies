@@ -1,0 +1,26 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug tests",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "node_modules/jest/bin/jest.js",
+            "args": [
+                "--passWithNoTests",
+                "--detectOpenHandles",
+                // "--testTimeout=300000"
+            ],
+            "env": {
+                "GOOGLE_CALENDAR_API_KEY_SECRET_NAME": "calendar_api",
+                "SECRET_VALUE_KEY": "calendarAPI"
+            }
+        }
+    ]
+}

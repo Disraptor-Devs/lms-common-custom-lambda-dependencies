@@ -10,7 +10,7 @@ const config = {
 
   // The glob patterns Jest uses to detect test files
   testMatch: [
-    "**/jest-tests/**/*.test(s)?.(m)?js"
+    "**/jest-tests/**/*.test.js"
   ],
 
   // An array of file extensions your modules use
@@ -27,8 +27,20 @@ const config = {
 
   // A set of global variables that need to be available in all test environments
   globals: {
-    INCLUDE_INTEGRATION_TESTS: false
+    INCLUDE_INTEGRATION_TESTS: true,
+    TEST_calculatePublicHolidaysAsync: false,
+    TEST_calculateTotalLeaveDaysAsync: false,
+    TEST_getPublicHolidayDatesAsync: false,
+    TEST_readSecretValue: false
   },
+
+  // The default configuration for fake timers
+  // fakeTimers: {
+  //   "enableGlobally": true
+  // },
+
+  // The test environment that will be used for testing
+  // testEnvironment: "jsdom"//"jest-environment-node",
 
     // All imported modules in your tests should be mocked automatically
   // automock: false,
@@ -72,11 +84,6 @@ const config = {
 
   // Make calling deprecated APIs throw helpful error messages
   // errorOnDeprecated: false,
-
-  // The default configuration for fake timers
-  // fakeTimers: {
-  //   "enableGlobally": false
-  // },
 
   // Force coverage collection from ignored files using an array of glob patterns
   // forceCoverageMatch: [],
@@ -165,9 +172,6 @@ const config = {
 
   // A list of paths to snapshot serializer modules Jest should use for snapshot testing
   // snapshotSerializers: [],
-
-  // The test environment that will be used for testing
-  // testEnvironment: "jest-environment-node",
 
   // Options that will be passed to the testEnvironment
   // testEnvironmentOptions: {},
