@@ -140,7 +140,12 @@ const getPublicHolidayDatesUsingGoogleCalendarAPIAsync = async (start, end) => {
         }
       })
       .on("error", (httpError) => {
-        let httpErrorMessage = `There was an error making the call to the API: [${httpError}]`;
+        let httpErrorMessage = `There was an error making the call to the API: [${httpError.message}]`;
+
+        if (!!httpError.errors && Array.isArray(httpError.errors)) {
+          httpErrorMessage += httpError.errors.map(e => `\n - [${e.message}]`);
+        }
+        
         let newHttpError = new Error(httpErrorMessage);
 
         reject(newHttpError);

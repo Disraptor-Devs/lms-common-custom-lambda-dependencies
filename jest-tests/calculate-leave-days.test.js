@@ -115,7 +115,8 @@ if (INCLUDE_INTEGRATION_TESTS) {
         { startDate: "2024-05-27", endDate: "2024-06-02", expected: 4 },
         { startDate: "2024-05-27", endDate: "2024-06-03", expected: 5 },
         { startDate: "2024-05-27", endDate: "2024-06-14", expected: 14 },
-        { startDate: "2024-05-27", endDate: "2024-06-18", expected: 15 }
+        { startDate: "2024-05-27", endDate: "2024-06-18", expected: 15 },
+        { startDate: "2024-08-08", endDate: "2024-08-12", expected: 2 }
       ];
       let testCase,
           startDate,
